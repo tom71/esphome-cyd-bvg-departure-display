@@ -3,7 +3,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![ESPHome](https://img.shields.io/badge/ESPHome-2024.x-blue.svg)](https://esphome.io/)
 [![Home Assistant](https://img.shields.io/badge/Home%20Assistant-Compatible-blue.svg)](https://www.home-assistant.io/)
-[![GitHub stars](https://img.shields.io/github/stars/YOUR_USERNAME/esphome-cyd-bvg-departure-display.svg?style=social&label=Star)](https://github.com/YOUR_USERNAME/esphome-cyd-bvg-departure-display)
+[![GitHub stars](https://img.shields.io/github/stars/tom71/esphome-cyd-bvg-departure-display.svg?style=social&label=Star)](https://github.com/tom71/esphome-cyd-bvg-departure-display)
 
 <p align="center">
   <img src="images/display-overview.jpg" alt="BVG Departure Display" width="600"/>
@@ -51,7 +51,7 @@
 
 ```bash
 cd ~/Documents/PlatformIO/Projects/
-git clone https://github.com/YOUR_USERNAME/esphome-cyd-bvg-departure-display.git
+git clone https://github.com/tom71/esphome-cyd-bvg-departure-display.git
 cd esphome-cyd-bvg-departure-display
 ```
 
@@ -250,6 +250,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 💬 Support
 
 If you have questions or need help:
-- Open an [Issue](https://github.com/YOUR_USERNAME/esphome-cyd-bvg-departure-display/issues)
+- Open an [Issue](https://github.com/tom71/esphome-cyd-bvg-departure-display/issues)
 - Check the [ESPHome Documentation](https://esphome.io/)
 - Visit the [Home Assistant Forum](https://community.home-assistant.io/)
