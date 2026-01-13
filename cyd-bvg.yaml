@@ -1,0 +1,764 @@
+####################################################################################################
+#                                                                                                  #
+#   ██████╗██╗   ██╗██████╗         ██████╗ ██╗   ██╗ ██████╗                                     #
+#  ██╔════╝╚██╗ ██╔╝██╔══██╗        ██╔══██╗██║   ██║██╔════╝                                     #
+#  ██║      ╚████╔╝ ██║  ██║        ██████╔╝██║   ██║██║  ███╗                                    #
+#  ██║       ╚██╔╝  ██║  ██║        ██╔══██╗╚██╗ ██╔╝██║   ██║                                    #
+#  ╚██████╗   ██║   ██████╔╝        ██████╔╝ ╚████╔╝ ╚██████╔╝                                    #
+#   ╚═════╝   ╚═╝   ╚═════╝         ╚═════╝   ╚═══╝   ╚═════╝                                     #
+#                                                                                                  #
+####################################################################################################
+
+#
+# Basic yaml code to get the ESP32-3248S035C working in Home Assistant as a 12-button "Stream Deck"
+# ============================================================
+# Author: Aaron Stewart @makeitworktech, with the help of ChatGPT.
+# GitHub: https://github.com/makeitworktech
+# Product Info: https://www.lcdwiki.com/3.5inch_ESP32-32E_Display
+# ============================================================ 
+
+substitutions:
+  device_name: cyd-bvg
+  friendly_name: "CYD BVG"
+  comment: "BVG Abfahrtsanzeige"
+
+esphome:
+  name: ${device_name}
+  friendly_name: ${friendly_name}
+  comment: ${comment}
+
+# ============================================================ 
+# Fonts
+# ============================================================
+
+<<: !include includes/dejavu-fonts.yaml
+
+time:
+  - platform: homeassistant
+    id: ha_time
+
+logger:
+  level: DEBUG
+
+esp32:
+  board: esp32dev
+  framework:
+    type: arduino
+
+
+# ============================================================ 
+# Home Assistant related setup
+# ============================================================
+
+# ==== Lights ====
+light:
+# LCD backlight
+  - platform: monochromatic
+    output: backlight_pwm
+    name: "Display Backlight"
+    id: backlight
+    restore_mode: ALWAYS_ON
+# onboard rgb led
+  - platform: rgb
+    name: "Front LED"
+    id: front_led
+    restore_mode: ALWAYS_OFF
+    red: led_red
+    green: led_green
+    blue: led_blue
+    effects:
+      - pulse:
+          name: "pulse_red"
+          transition_length: 2s
+          update_interval: 2s
+          min_brightness: 20%
+          max_brightness: 80%
+
+# ==== Switches ====
+switch:
+  - platform: template
+    name: "Display Dimmed Mode"
+    id: display_dimmed
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_OFF
+    turn_on_action:
+      - light.turn_on:
+          id: backlight
+          brightness: 30%
+    turn_off_action:
+      - light.turn_on:
+          id: backlight
+          brightness: 100%
+
+# ============================================================ 
+# Touchscreen Display related setup
+# ============================================================
+
+# Set pins to control the backlight and RGB LED. Still haven't figured this out yet. 
+output:
+  - platform: ledc
+    pin: GPIO27
+    id: backlight_pwm
+  - platform: ledc
+    pin: GPIO22
+    id: led_red
+    inverted: true
+  - platform: ledc
+    pin: GPIO16  # This was green
+    id: led_blue # ← renamed
+    inverted: true
+  - platform: ledc
+    pin: GPIO17  # This was blue
+    id: led_green # ← renamed
+    inverted: true
+
+
+# SPI bus for TFT display and touch controller
+spi:
+  - id: spi_tft
+    clk_pin: GPIO14
+    mosi_pin: GPIO13
+    miso_pin: GPIO12
+
+# Defining the display type and properties
+display:
+  - platform: ili9xxx
+    id: my_display
+    model: ST7796
+    spi_id: spi_tft
+    dc_pin: GPIO2
+    cs_pin: GPIO15
+    dimensions:
+      width: 480
+      height: 320
+    data_rate: 80MHz
+    color_order: BGR
+    invert_colors: false
+    update_interval: never
+    auto_clear_enabled: false
+    show_test_card: false
+    transform:
+      swap_xy: true
+      mirror_y: false
+      mirror_x: false
+
+# ============================================================ 
+# Home Assistant Sensors
+# ============================================================
+
+sensor:
+  - platform: homeassistant
+    entity_id: sensor.garten_thermometer_temperature
+    id: garden_temp
+    internal: true
+  
+  # LDR Light Sensor (GPIO34)
+  - platform: adc
+    pin: GPIO34
+    name: "Ambient Light"
+    id: ambient_light
+    update_interval: 5s
+    attenuation: 0db  # 0dB = 0~800mV range (matching the example code)
+    filters:
+      - multiply: 1000  # Convert to millivolts
+      - or:
+        - throttle: 5s  # Only send if changed
+        - delta: 10     # Only send if change > 10mV
+      - lambda: |-
+          // Convert millivolts to percentage (0-100%)
+          // Based on typical LDR behavior: 0-800mV range
+          float min_mv = 50.0;   // Very dark (adjust based on your environment)
+          float max_mv = 700.0;  // Very bright (adjust based on your environment)
+          float percentage = (x - min_mv) / (max_mv - min_mv) * 100.0;
+          return std::max(0.0f, std::min(100.0f, percentage));
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+
+text_sensor:
+  # Departure 1
+  - platform: homeassistant
+    entity_id: sensor.s_karlshorst_dep1_line
+    id: dep1_line_text
+    internal: true
+  - platform: homeassistant
+    entity_id: sensor.s_karlshorst_dep1_direction
+    id: dep1_direction_text
+    internal: true
+  - platform: homeassistant
+    entity_id: sensor.s_karlshorst_dep1_time
+    id: dep1_time_text
+    internal: true
+  - platform: homeassistant
+    entity_id: sensor.s_karlshorst_dep1_delay
+    id: dep1_delay_text
+    internal: true
+  - platform: homeassistant
+    entity_id: sensor.s_karlshorst_dep1_color
+    id: dep1_color_text
+    internal: true
+  - platform: homeassistant
+    entity_id: sensor.s_karlshorst_dep1_minutes
+    id: dep1_minutes_text
+    internal: true
+  - platform: homeassistant
+    entity_id: sensor.s_karlshorst_dep1_cancelled
+    id: dep1_cancelled_text
+    internal: true
+  
+  # Departure 2
+  - platform: homeassistant
+    entity_id: sensor.s_karlshorst_dep2_line
+    id: dep2_line_text
+    internal: true
+  - platform: homeassistant
+    entity_id: sensor.s_karlshorst_dep2_direction
+    id: dep2_direction_text
+    internal: true
+  - platform: homeassistant
+    entity_id: sensor.s_karlshorst_dep2_time
+    id: dep2_time_text
+    internal: true
+  - platform: homeassistant
+    entity_id: sensor.s_karlshorst_dep2_delay
+    id: dep2_delay_text
+    internal: true
+  - platform: homeassistant
+    entity_id: sensor.s_karlshorst_dep2_color
+    id: dep2_color_text
+    internal: true
+  - platform: homeassistant
+    entity_id: sensor.s_karlshorst_dep2_minutes
+    id: dep2_minutes_text
+    internal: true
+  - platform: homeassistant
+    entity_id: sensor.s_karlshorst_dep2_cancelled
+    id: dep2_cancelled_text
+    internal: true
+  
+  # Departure 3
+  - platform: homeassistant
+    entity_id: sensor.s_karlshorst_dep3_line
+    id: dep3_line_text
+    internal: true
+  - platform: homeassistant
+    entity_id: sensor.s_karlshorst_dep3_direction
+    id: dep3_direction_text
+    internal: true
+  - platform: homeassistant
+    entity_id: sensor.s_karlshorst_dep3_time
+    id: dep3_time_text
+    internal: true
+  - platform: homeassistant
+    entity_id: sensor.s_karlshorst_dep3_delay
+    id: dep3_delay_text
+    internal: true
+  - platform: homeassistant
+    entity_id: sensor.s_karlshorst_dep3_color
+    id: dep3_color_text
+    internal: true
+  - platform: homeassistant
+    entity_id: sensor.s_karlshorst_dep3_minutes
+    id: dep3_minutes_text
+    internal: true
+  - platform: homeassistant
+    entity_id: sensor.s_karlshorst_dep3_cancelled
+    id: dep3_cancelled_text
+    internal: true
+  
+  # Departure 4
+  - platform: homeassistant
+    entity_id: sensor.s_karlshorst_dep4_line
+    id: dep4_line_text
+    internal: true
+  - platform: homeassistant
+    entity_id: sensor.s_karlshorst_dep4_direction
+    id: dep4_direction_text
+    internal: true
+  - platform: homeassistant
+    entity_id: sensor.s_karlshorst_dep4_time
+    id: dep4_time_text
+    internal: true
+  - platform: homeassistant
+    entity_id: sensor.s_karlshorst_dep4_delay
+    id: dep4_delay_text
+    internal: true
+  - platform: homeassistant
+    entity_id: sensor.s_karlshorst_dep4_color
+    id: dep4_color_text
+    internal: true
+  - platform: homeassistant
+    entity_id: sensor.s_karlshorst_dep4_minutes
+    id: dep4_minutes_text
+    internal: true
+  - platform: homeassistant
+    entity_id: sensor.s_karlshorst_dep4_cancelled
+    id: dep4_cancelled_text
+    internal: true
+  
+  # Departure 5
+  - platform: homeassistant
+    entity_id: sensor.s_karlshorst_dep5_line
+    id: dep5_line_text
+    internal: true
+  - platform: homeassistant
+    entity_id: sensor.s_karlshorst_dep5_direction
+    id: dep5_direction_text
+    internal: true
+  - platform: homeassistant
+    entity_id: sensor.s_karlshorst_dep5_time
+    id: dep5_time_text
+    internal: true
+  - platform: homeassistant
+    entity_id: sensor.s_karlshorst_dep5_delay
+    id: dep5_delay_text
+    internal: true
+  - platform: homeassistant
+    entity_id: sensor.s_karlshorst_dep5_color
+    id: dep5_color_text
+    internal: true
+  - platform: homeassistant
+    entity_id: sensor.s_karlshorst_dep5_minutes
+    id: dep5_minutes_text
+    internal: true
+  - platform: homeassistant
+    entity_id: sensor.s_karlshorst_dep5_cancelled
+    id: dep5_cancelled_text
+    internal: true    
+
+# ============================================================ 
+# LVGL Display Configuration
+# ============================================================
+
+lvgl:
+  buffer_size: 25%
+  
+  pages:
+    - id: main_page
+      bg_color: 0x000000
+      widgets:
+        # Header: Station name
+        - label:
+            id: station_label
+            text: "S Karlshorst"
+            text_align: left
+            x: 10
+            y: 5
+            text_color: 0xFFFFFF
+            text_font: font_header
+        
+        # Time and Temperature in top right
+        - label:
+            id: time_temp_label
+            text: ""
+            text_align: right
+            align: top_right
+            x: -10
+            y: 5
+            text_color: 0xFFFFFF
+            text_font: font_destination
+        
+        # Departure Line 1
+        - obj:
+            id: dep1_container
+            x: 0
+            y: 40
+            width: 480
+            height: 45
+            bg_opa: TRANSP
+            border_width: 0
+            pad_all: 0
+            widgets:
+              # Line badge (e.g., S3, M17)
+              - label:
+                  id: dep1_line
+                  text: ""
+                  x: 10
+                  y: 0
+                  width: 65
+                  height: 40
+                  bg_opa: COVER
+                  bg_color: 0x0079F2
+                  text_color: 0xFFFFFF
+                  text_align: center
+                  text_font: font_line_badge
+                  pad_all: 8
+                  radius: 8
+              # Direction/Destination
+              - label:
+                  id: dep1_direction
+                  text: ""
+                  x: 85
+                  y: 10
+                  text_color: 0xFFFFFF
+                  text_font: font_destination
+              # Time with delay
+              - label:
+                  id: dep1_time
+                  text: ""
+                  text_align: right
+                  align: top_right
+                  x: -10
+                  y: 10
+                  text_color: 0xFFFFFF
+                  text_font: font_time
+        
+        # Departure Line 2
+        - obj:
+            id: dep2_container
+            x: 0
+            y: 90
+            width: 480
+            height: 45
+            bg_opa: TRANSP
+            border_width: 0
+            pad_all: 0
+            widgets:
+              - label:
+                  id: dep2_line
+                  text: ""
+                  x: 10
+                  y: 0
+                  width: 65
+                  height: 40
+                  bg_opa: COVER
+                  bg_color: 0x0079F2
+                  text_color: 0xFFFFFF
+                  text_align: center
+                  text_font: font_line_badge
+                  pad_all: 8
+                  radius: 8
+              - label:
+                  id: dep2_direction
+                  text: ""
+                  x: 85
+                  y: 10
+                  text_color: 0xFFFFFF
+                  text_font: font_destination
+              - label:
+                  id: dep2_time
+                  text: ""
+                  text_align: right
+                  align: top_right
+                  x: -10
+                  y: 10
+                  text_color: 0xFFFFFF
+                  text_font: font_time
+        
+        # Departure Line 3
+        - obj:
+            id: dep3_container
+            x: 0
+            y: 140
+            width: 480
+            height: 45
+            bg_opa: TRANSP
+            border_width: 0
+            pad_all: 0
+            widgets:
+              - label:
+                  id: dep3_line
+                  text: ""
+                  x: 10
+                  y: 0
+                  width: 65
+                  height: 40
+                  bg_opa: COVER
+                  bg_color: 0xCB621A
+                  text_color: 0xFFFFFF
+                  text_align: center
+                  text_font: font_line_badge
+                  pad_all: 8
+                  radius: 8
+              - label:
+                  id: dep3_direction
+                  text: ""
+                  x: 85
+                  y: 10
+                  text_color: 0xFFFFFF
+                  text_font: font_destination
+              - label:
+                  id: dep3_time
+                  text: ""
+                  text_align: right
+                  align: top_right
+                  x: -10
+                  y: 10
+                  text_color: 0xFFFFFF
+                  text_font: font_time
+        
+        # Departure Line 4
+        - obj:
+            id: dep4_container
+            x: 0
+            y: 190
+            width: 480
+            height: 45
+            bg_opa: TRANSP
+            border_width: 0
+            pad_all: 0
+            widgets:
+              - label:
+                  id: dep4_line
+                  text: ""
+                  x: 10
+                  y: 0
+                  width: 65
+                  height: 40
+                  bg_opa: COVER
+                  bg_color: 0xA6422A
+                  text_color: 0xFFFFFF
+                  text_align: center
+                  text_font: font_line_badge
+                  pad_all: 8
+                  radius: 8
+              - label:
+                  id: dep4_direction
+                  text: ""
+                  x: 85
+                  y: 10
+                  text_color: 0xFFFFFF
+                  text_font: font_destination
+              - label:
+                  id: dep4_time
+                  text: ""
+                  text_align: right
+                  align: top_right
+                  x: -10
+                  y: 10
+                  text_color: 0xFFFFFF
+                  text_font: font_time
+        
+        # Departure Line 5
+        - obj:
+            id: dep5_container
+            x: 0
+            y: 240
+            width: 480
+            height: 45
+            bg_opa: TRANSP
+            border_width: 0
+            pad_all: 0
+            widgets:
+              - label:
+                  id: dep5_line
+                  text: ""
+                  x: 10
+                  y: 0
+                  width: 65
+                  height: 40
+                  bg_opa: COVER
+                  bg_color: 0x0079F2
+                  text_color: 0xFFFFFF
+                  text_align: center
+                  text_font: font_line_badge
+                  pad_all: 8
+                  radius: 8
+              - label:
+                  id: dep5_direction
+                  text: ""
+                  x: 85
+                  y: 10
+                  text_color: 0xFFFFFF
+                  text_font: font_destination
+              - label:
+                  id: dep5_time
+                  text: ""
+                  text_align: right
+                  align: top_right
+                  x: -10
+                  y: 10
+                  text_color: 0xFFFFFF
+                  text_font: font_time
+  
+  # Remove or comment out the on_idle section
+  # on_idle:
+  #   timeout: 30s
+  #   then:
+  #     - light.turn_on: 
+  #         id: backlight
+  #         brightness: 30%
+
+
+# ============================================================ 
+# Update Display with BVG Data
+# ============================================================
+
+interval:
+  - interval: 5s
+    then:
+      - lvgl.label.update:
+          id: time_temp_label
+          text: !lambda |-
+            auto now = id(ha_time).now();
+            float temp = id(garden_temp).state;
+            return now.strftime("%H:%M") + " | " + str_sprintf("%.1f°C", temp);
+      
+      # Check for delays and control LED
+      - lambda: |-
+          int dep1_delay = atoi(id(dep1_delay_text).state.c_str()) / 60;
+          int dep2_delay = atoi(id(dep2_delay_text).state.c_str()) / 60;
+          
+          // Check if either westbound train has more than 5 min delay
+          if (dep1_delay > 5 || dep2_delay > 5) {
+            auto call = id(front_led).turn_on();
+            call.set_effect("pulse_red");
+            call.perform();
+          } else {
+            auto call = id(front_led).turn_off();
+            call.perform();
+          }
+      
+      # Update Departure 1
+      - lvgl.label.update:
+          id: dep1_line
+          text: !lambda |-
+            if (id(dep1_line_text).state == "unavailable" || id(dep1_line_text).state.empty()) return "";
+            return id(dep1_line_text).state.c_str();
+          bg_color: !lambda |-
+            std::string hex = id(dep1_color_text).state;
+            if (hex.empty() || hex[0] != '#') return lv_color_hex(0x000000);
+            return lv_color_hex(std::stoul(hex.substr(1), nullptr, 16));
+      - lvgl.label.update:
+          id: dep1_direction
+          text: !lambda |-
+            if (id(dep1_direction_text).state == "unavailable" || id(dep1_direction_text).state.empty()) return "";
+            bool cancelled = (id(dep1_cancelled_text).state == "true");
+            std::string dir = id(dep1_direction_text).state;
+            return cancelled ? "ENTFÄLLT: " + dir : dir;
+          text_color: !lambda |-
+            bool cancelled = (id(dep1_cancelled_text).state == "true");
+            return cancelled ? lv_color_hex(0xFF0000) : lv_color_hex(0xFFFFFF);
+      - lvgl.label.update:
+          id: dep1_time
+          text: !lambda |-
+            if (id(dep1_time_text).state == "unavailable" || id(dep1_time_text).state.empty()) return "";
+            int delay_min = atoi(id(dep1_delay_text).state.c_str()) / 60;
+            std::string time_str = id(dep1_minutes_text).state + "' " + id(dep1_time_text).state;
+            if (delay_min != 0) {
+              time_str += (delay_min > 0) ? " +" + std::to_string(delay_min) : " " + std::to_string(delay_min);
+            }
+            return time_str;
+      
+      # Update Departure 2
+      - lvgl.label.update:
+          id: dep2_line
+          text: !lambda |-
+            if (id(dep2_line_text).state == "unavailable" || id(dep2_line_text).state.empty()) return "";
+            return id(dep2_line_text).state.c_str();
+          bg_color: !lambda |-
+            std::string hex = id(dep2_color_text).state;
+            if (hex.empty() || hex[0] != '#') return lv_color_hex(0x000000);
+            return lv_color_hex(std::stoul(hex.substr(1), nullptr, 16));
+      - lvgl.label.update:
+          id: dep2_direction
+          text: !lambda |-
+            if (id(dep2_direction_text).state == "unavailable" || id(dep2_direction_text).state.empty()) return "";
+            bool cancelled = (id(dep2_cancelled_text).state == "true");
+            std::string dir = id(dep2_direction_text).state;
+            return cancelled ? "ENTFÄLLT: " + dir : dir;
+          text_color: !lambda |-
+            bool cancelled = (id(dep2_cancelled_text).state == "true");
+            return cancelled ? lv_color_hex(0xFF0000) : lv_color_hex(0xFFFFFF);
+      - lvgl.label.update:
+          id: dep2_time
+          text: !lambda |-
+            if (id(dep2_time_text).state == "unavailable" || id(dep2_time_text).state.empty()) return "";
+            int delay_min = atoi(id(dep2_delay_text).state.c_str()) / 60;
+            std::string time_str = id(dep2_minutes_text).state + "' " + id(dep2_time_text).state;
+            if (delay_min != 0) {
+              time_str += (delay_min > 0) ? " +" + std::to_string(delay_min) : " " + std::to_string(delay_min);
+            }
+            return time_str;
+      
+      # Update Departure 3
+      - lvgl.label.update:
+          id: dep3_line
+          text: !lambda |-
+            if (id(dep3_line_text).state == "unavailable" || id(dep3_line_text).state.empty()) return "";
+            return id(dep3_line_text).state.c_str();
+          bg_color: !lambda |-
+            std::string hex = id(dep3_color_text).state;
+            if (hex.empty() || hex[0] != '#') return lv_color_hex(0x000000);
+            return lv_color_hex(std::stoul(hex.substr(1), nullptr, 16));
+      - lvgl.label.update:
+          id: dep3_direction
+          text: !lambda |-
+            if (id(dep3_direction_text).state == "unavailable" || id(dep3_direction_text).state.empty()) return "";
+            bool cancelled = (id(dep3_cancelled_text).state == "true");
+            std::string dir = id(dep3_direction_text).state;
+            return cancelled ? "ENTFÄLLT: " + dir : dir;
+          text_color: !lambda |-
+            bool cancelled = (id(dep3_cancelled_text).state == "true");
+            return cancelled ? lv_color_hex(0xFF0000) : lv_color_hex(0xFFFFFF);
+      - lvgl.label.update:
+          id: dep3_time
+          text: !lambda |-
+            if (id(dep3_time_text).state == "unavailable" || id(dep3_time_text).state.empty()) return "";
+            int delay_min = atoi(id(dep3_delay_text).state.c_str()) / 60;
+            std::string time_str = id(dep3_minutes_text).state + "' " + id(dep3_time_text).state;
+            if (delay_min != 0) {
+              time_str += (delay_min > 0) ? " +" + std::to_string(delay_min) : " " + std::to_string(delay_min);
+            }
+            return time_str;
+      
+      # Update Departure 4
+      - lvgl.label.update:
+          id: dep4_line
+          text: !lambda |-
+            if (id(dep4_line_text).state == "unavailable" || id(dep4_line_text).state.empty()) return "";
+            return id(dep4_line_text).state.c_str();
+          bg_color: !lambda |-
+            std::string hex = id(dep4_color_text).state;
+            if (hex.empty() || hex[0] != '#') return lv_color_hex(0x000000);
+            return lv_color_hex(std::stoul(hex.substr(1), nullptr, 16));
+      - lvgl.label.update:
+          id: dep4_direction
+          text: !lambda |-
+            if (id(dep4_direction_text).state == "unavailable" || id(dep4_direction_text).state.empty()) return "";
+            bool cancelled = (id(dep4_cancelled_text).state == "true");
+            std::string dir = id(dep4_direction_text).state;
+            return cancelled ? "ENTFÄLLT: " + dir : dir;
+          text_color: !lambda |-
+            bool cancelled = (id(dep4_cancelled_text).state == "true");
+            return cancelled ? lv_color_hex(0xFF0000) : lv_color_hex(0xFFFFFF);
+      - lvgl.label.update:
+          id: dep4_time
+          text: !lambda |-
+            if (id(dep4_time_text).state == "unavailable" || id(dep4_time_text).state.empty()) return "";
+            int delay_min = atoi(id(dep4_delay_text).state.c_str()) / 60;
+            std::string time_str = id(dep4_minutes_text).state + "' " + id(dep4_time_text).state;
+            if (delay_min != 0) {
+              time_str += (delay_min > 0) ? " +" + std::to_string(delay_min) : " " + std::to_string(delay_min);
+            }
+            return time_str;
+      
+      # Update Departure 5
+      - lvgl.label.update:
+          id: dep5_line
+          text: !lambda |-
+            if (id(dep5_line_text).state == "unavailable" || id(dep5_line_text).state.empty()) return "";
+            return id(dep5_line_text).state.c_str();
+          bg_color: !lambda |-
+            std::string hex = id(dep5_color_text).state;
+            if (hex.empty() || hex[0] != '#') return lv_color_hex(0x000000);
+            return lv_color_hex(std::stoul(hex.substr(1), nullptr, 16));
+      - lvgl.label.update:
+          id: dep5_direction
+          text: !lambda |-
+            if (id(dep5_direction_text).state == "unavailable" || id(dep5_direction_text).state.empty()) return "";
+            bool cancelled = (id(dep5_cancelled_text).state == "true");
+            std::string dir = id(dep5_direction_text).state;
+            return cancelled ? "ENTFÄLLT: " + dir : dir;
+          text_color: !lambda |-
+            bool cancelled = (id(dep5_cancelled_text).state == "true");
+            return cancelled ? lv_color_hex(0xFF0000) : lv_color_hex(0xFFFFFF);
+      - lvgl.label.update:
+          id: dep5_time
+          text: !lambda |-
+            if (id(dep5_time_text).state == "unavailable" || id(dep5_time_text).state.empty()) return "";
+            int delay_min = atoi(id(dep5_delay_text).state.c_str()) / 60;
+            std::string time_str = id(dep5_minutes_text).state + "' " + id(dep5_time_text).state;
+            if (delay_min != 0) {
+              time_str += (delay_min > 0) ? " +" + std::to_string(delay_min) : " " + std::to_string(delay_min);
+            }
+            return time_str;

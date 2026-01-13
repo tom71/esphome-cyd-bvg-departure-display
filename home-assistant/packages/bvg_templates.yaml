@@ -1,0 +1,570 @@
+# Home Assistant Template Sensoren für BVG Abfahrten
+# Diese Konfiguration in configuration.yaml einfügen oder als Package einbinden
+
+template:
+  - sensor:
+      # Departure 1 - S-Bahn Richtung Charlottenburg/Ostbahnhof/Spandau
+      - name: "S Karlshorst Dep1 Line"
+        unique_id: s_karlshorst_dep1_line
+        state: >
+          {% set deps = state_attr('sensor.s_karlshorst_berlin', 'departures') %}
+          {% if deps %}
+            {% set s_bahn = deps | selectattr('line_name', 'match', '^S') | 
+                selectattr('direction', 'search', '(Charlottenburg|Ostbahnhof|Spandau)') | list %}
+            {% if s_bahn|length > 0 %}
+              {{ s_bahn[0].line_name }}
+            {% else %}
+              unavailable
+            {% endif %}
+          {% else %}
+            unavailable
+          {% endif %}
+          
+      - name: "S Karlshorst Dep1 Direction"
+        unique_id: s_karlshorst_dep1_direction
+        state: >
+          {% set deps = state_attr('sensor.s_karlshorst_berlin', 'departures') %}
+          {% if deps %}
+            {% set s_bahn = deps | selectattr('line_name', 'match', '^S') | 
+                selectattr('direction', 'search', '(Charlottenburg|Ostbahnhof|Spandau)') | list %}
+            {% if s_bahn|length > 0 %}
+              {{ s_bahn[0].direction | regex_replace('^S\\+?U?\\s+', '') | truncate(20, True, '') }}
+            {% else %}
+              unavailable
+            {% endif %}
+          {% else %}
+            unavailable
+          {% endif %}
+          
+      - name: "S Karlshorst Dep1 Time"
+        unique_id: s_karlshorst_dep1_time
+        state: >
+          {% set deps = state_attr('sensor.s_karlshorst_berlin', 'departures') %}
+          {% if deps %}
+            {% set s_bahn = deps | selectattr('line_name', 'match', '^S') | 
+                selectattr('direction', 'search', '(Charlottenburg|Ostbahnhof|Spandau)') | list %}
+            {% if s_bahn|length > 0 %}
+              {{ s_bahn[0].time }}
+            {% else %}
+              unavailable
+            {% endif %}
+          {% else %}
+            unavailable
+          {% endif %}
+          
+      - name: "S Karlshorst Dep1 Delay"
+        unique_id: s_karlshorst_dep1_delay
+        state: >
+          {% set deps = state_attr('sensor.s_karlshorst_berlin', 'departures') %}
+          {% if deps %}
+            {% set s_bahn = deps | selectattr('line_name', 'match', '^S') | 
+                selectattr('direction', 'search', '(Charlottenburg|Ostbahnhof|Spandau)') | list %}
+            {% if s_bahn|length > 0 %}
+              {{ s_bahn[0].delay | int }}
+            {% else %}
+              0
+            {% endif %}
+          {% else %}
+            0
+          {% endif %}
+          
+      - name: "S Karlshorst Dep1 Color"
+        unique_id: s_karlshorst_dep1_color
+        state: >
+          {% set deps = state_attr('sensor.s_karlshorst_berlin', 'departures') %}
+          {% if deps %}
+            {% set s_bahn = deps | selectattr('line_name', 'match', '^S') | 
+                selectattr('direction', 'search', '(Charlottenburg|Ostbahnhof|Spandau)') | list %}
+            {% if s_bahn|length > 0 %}
+              {{ s_bahn[0].color }}
+            {% else %}
+              #FFFFFF
+            {% endif %}
+          {% else %}
+            #FFFFFF
+          {% endif %}
+      
+      - name: "S Karlshorst Dep1 Minutes"
+        unique_id: s_karlshorst_dep1_minutes
+        state: >
+          {% set deps = state_attr('sensor.s_karlshorst_berlin', 'departures') %}
+          {% if deps %}
+            {% set s_bahn = deps | selectattr('line_name', 'match', '^S') | 
+                selectattr('direction', 'search', '(Charlottenburg|Ostbahnhof|Spandau)') | list %}
+            {% if s_bahn|length > 0 %}
+              {% set dep_time = as_timestamp(s_bahn[0].timestamp) %}
+              {% set now_time = as_timestamp(now()) %}
+              {{ ((dep_time - now_time) / 60) | int }}
+            {% else %}
+              0
+            {% endif %}
+          {% else %}
+            0
+          {% endif %}
+        unit_of_measurement: "min"
+      
+      - name: "S Karlshorst Dep1 Cancelled"
+        unique_id: s_karlshorst_dep1_cancelled
+        state: >
+          {% set deps = state_attr('sensor.s_karlshorst_berlin', 'departures') %}
+          {% if deps %}
+            {% set s_bahn = deps | selectattr('line_name', 'match', '^S') | 
+                selectattr('direction', 'search', '(Charlottenburg|Ostbahnhof|Spandau)') | list %}
+            {% if s_bahn|length > 0 %}
+              {{ s_bahn[0].get('cancelled', false) | string | lower }}
+            {% else %}
+              false
+            {% endif %}
+          {% else %}
+            false
+          {% endif %}
+
+      # Departure 2 - S-Bahn Richtung Charlottenburg/Ostbahnhof/Spandau (zweite)
+      - name: "S Karlshorst Dep2 Line"
+        unique_id: s_karlshorst_dep2_line
+        state: >
+          {% set deps = state_attr('sensor.s_karlshorst_berlin', 'departures') %}
+          {% if deps %}
+            {% set s_bahn = deps | selectattr('line_name', 'match', '^S') | 
+                selectattr('direction', 'search', '(Charlottenburg|Ostbahnhof|Spandau)') | list %}
+            {% if s_bahn|length > 1 %}
+              {{ s_bahn[1].line_name }}
+            {% else %}
+              unavailable
+            {% endif %}
+          {% else %}
+            unavailable
+          {% endif %}
+          
+      - name: "S Karlshorst Dep2 Direction"
+        unique_id: s_karlshorst_dep2_direction
+        state: >
+          {% set deps = state_attr('sensor.s_karlshorst_berlin', 'departures') %}
+          {% if deps %}
+            {% set s_bahn = deps | selectattr('line_name', 'match', '^S') | 
+                selectattr('direction', 'search', '(Charlottenburg|Ostbahnhof|Spandau)') | list %}
+            {% if s_bahn|length > 1 %}
+              {{ s_bahn[1].direction | regex_replace('^S\\+?U?\\s+', '') | truncate(20, True, '') }}
+            {% else %}
+              unavailable
+            {% endif %}
+          {% else %}
+            unavailable
+          {% endif %}
+          
+      - name: "S Karlshorst Dep2 Time"
+        unique_id: s_karlshorst_dep2_time
+        state: >
+          {% set deps = state_attr('sensor.s_karlshorst_berlin', 'departures') %}
+          {% if deps %}
+            {% set s_bahn = deps | selectattr('line_name', 'match', '^S') | 
+                selectattr('direction', 'search', '(Charlottenburg|Ostbahnhof|Spandau)') | list %}
+            {% if s_bahn|length > 1 %}
+              {{ s_bahn[1].time }}
+            {% else %}
+              unavailable
+            {% endif %}
+          {% else %}
+            unavailable
+          {% endif %}
+          
+      - name: "S Karlshorst Dep2 Delay"
+        unique_id: s_karlshorst_dep2_delay
+        state: >
+          {% set deps = state_attr('sensor.s_karlshorst_berlin', 'departures') %}
+          {% if deps %}
+            {% set s_bahn = deps | selectattr('line_name', 'match', '^S') | 
+                selectattr('direction', 'search', '(Charlottenburg|Ostbahnhof|Spandau)') | list %}
+            {% if s_bahn|length > 1 %}
+              {{ s_bahn[1].delay | int }}
+            {% else %}
+              0
+            {% endif %}
+          {% else %}
+            0
+          {% endif %}
+          
+      - name: "S Karlshorst Dep2 Color"
+        unique_id: s_karlshorst_dep2_color
+        state: >
+          {% set deps = state_attr('sensor.s_karlshorst_berlin', 'departures') %}
+          {% if deps %}
+            {% set s_bahn = deps | selectattr('line_name', 'match', '^S') | 
+                selectattr('direction', 'search', '(Charlottenburg|Ostbahnhof|Spandau)') | list %}
+            {% if s_bahn|length > 1 %}
+              {{ s_bahn[1].color }}
+            {% else %}
+              #FFFFFF
+            {% endif %}
+          {% else %}
+            #FFFFFF
+          {% endif %}
+      
+      - name: "S Karlshorst Dep2 Minutes"
+        unique_id: s_karlshorst_dep2_minutes
+        state: >
+          {% set deps = state_attr('sensor.s_karlshorst_berlin', 'departures') %}
+          {% if deps %}
+            {% set s_bahn = deps | selectattr('line_name', 'match', '^S') | 
+                selectattr('direction', 'search', '(Charlottenburg|Ostbahnhof|Spandau)') | list %}
+            {% if s_bahn|length > 1 %}
+              {% set dep_time = as_timestamp(s_bahn[1].timestamp) %}
+              {% set now_time = as_timestamp(now()) %}
+              {{ ((dep_time - now_time) / 60) | int }}
+            {% else %}
+              0
+            {% endif %}
+          {% else %}
+            0
+          {% endif %}
+        unit_of_measurement: "min"
+      
+      - name: "S Karlshorst Dep2 Cancelled"
+        unique_id: s_karlshorst_dep2_cancelled
+        state: >
+          {% set deps = state_attr('sensor.s_karlshorst_berlin', 'departures') %}
+          {% if deps %}
+            {% set s_bahn = deps | selectattr('line_name', 'match', '^S') | 
+                selectattr('direction', 'search', '(Charlottenburg|Ostbahnhof|Spandau)') | list %}
+            {% if s_bahn|length > 1 %}
+              {{ s_bahn[1].get('cancelled', false) | string | lower }}
+            {% else %}
+              false
+            {% endif %}
+          {% else %}
+            false
+          {% endif %}
+
+      # Departure 3 - S-Bahn andere Richtungen
+      - name: "S Karlshorst Dep3 Line"
+        unique_id: s_karlshorst_dep3_line
+        state: >
+          {% set deps = state_attr('sensor.s_karlshorst_berlin', 'departures') %}
+          {% if deps %}
+            {% set s_bahn = deps | selectattr('line_name', 'match', '^S') | 
+                rejectattr('direction', 'search', '(Charlottenburg|Ostbahnhof|Spandau)') | list %}
+            {% if s_bahn|length > 0 %}
+              {{ s_bahn[0].line_name }}
+            {% else %}
+              unavailable
+            {% endif %}
+          {% else %}
+            unavailable
+          {% endif %}
+          
+      - name: "S Karlshorst Dep3 Direction"
+        unique_id: s_karlshorst_dep3_direction
+        state: >
+          {% set deps = state_attr('sensor.s_karlshorst_berlin', 'departures') %}
+          {% if deps %}
+            {% set s_bahn = deps | selectattr('line_name', 'match', '^S') | 
+                rejectattr('direction', 'search', '(Charlottenburg|Ostbahnhof|Spandau)') | list %}
+            {% if s_bahn|length > 0 %}
+              {{ s_bahn[0].direction | regex_replace('^S\\+?U?\\s+', '') | truncate(20, True, '') }}
+            {% else %}
+              unavailable
+            {% endif %}
+          {% else %}
+            unavailable
+          {% endif %}
+          
+      - name: "S Karlshorst Dep3 Time"
+        unique_id: s_karlshorst_dep3_time
+        state: >
+          {% set deps = state_attr('sensor.s_karlshorst_berlin', 'departures') %}
+          {% if deps %}
+            {% set s_bahn = deps | selectattr('line_name', 'match', '^S') | 
+                rejectattr('direction', 'search', '(Charlottenburg|Ostbahnhof|Spandau)') | list %}
+            {% if s_bahn|length > 0 %}
+              {{ s_bahn[0].time }}
+            {% else %}
+              unavailable
+            {% endif %}
+          {% else %}
+            unavailable
+          {% endif %}
+          
+      - name: "S Karlshorst Dep3 Delay"
+        unique_id: s_karlshorst_dep3_delay
+        state: >
+          {% set deps = state_attr('sensor.s_karlshorst_berlin', 'departures') %}
+          {% if deps %}
+            {% set s_bahn = deps | selectattr('line_name', 'match', '^S') | 
+                rejectattr('direction', 'search', '(Charlottenburg|Ostbahnhof|Spandau)') | list %}
+            {% if s_bahn|length > 0 %}
+              {{ s_bahn[0].delay | int }}
+            {% else %}
+              0
+            {% endif %}
+          {% else %}
+            0
+          {% endif %}
+          
+      - name: "S Karlshorst Dep3 Color"
+        unique_id: s_karlshorst_dep3_color
+        state: >
+          {% set deps = state_attr('sensor.s_karlshorst_berlin', 'departures') %}
+          {% if deps %}
+            {% set s_bahn = deps | selectattr('line_name', 'match', '^S') | 
+                rejectattr('direction', 'search', '(Charlottenburg|Ostbahnhof|Spandau)') | list %}
+            {% if s_bahn|length > 0 %}
+              {{ s_bahn[0].color }}
+            {% else %}
+              #FFFFFF
+            {% endif %}
+          {% else %}
+            #FFFFFF
+          {% endif %}
+      
+      - name: "S Karlshorst Dep3 Minutes"
+        unique_id: s_karlshorst_dep3_minutes
+        state: >
+          {% set deps = state_attr('sensor.s_karlshorst_berlin', 'departures') %}
+          {% if deps %}
+            {% set s_bahn = deps | selectattr('line_name', 'match', '^S') | 
+                rejectattr('direction', 'search', '(Charlottenburg|Ostbahnhof|Spandau)') | list %}
+            {% if s_bahn|length > 0 %}
+              {% set dep_time = as_timestamp(s_bahn[0].timestamp) %}
+              {% set now_time = as_timestamp(now()) %}
+              {{ ((dep_time - now_time) / 60) | int }}
+            {% else %}
+              0
+            {% endif %}
+          {% else %}
+            0
+          {% endif %}
+        unit_of_measurement: "min"
+      
+      - name: "S Karlshorst Dep3 Cancelled"
+        unique_id: s_karlshorst_dep3_cancelled
+        state: >
+          {% set deps = state_attr('sensor.s_karlshorst_berlin', 'departures') %}
+          {% if deps %}
+            {% set s_bahn = deps | selectattr('line_name', 'match', '^S') | 
+                rejectattr('direction', 'search', '(Charlottenburg|Ostbahnhof|Spandau)') | list %}
+            {% if s_bahn|length > 0 %}
+              {{ s_bahn[0].get('cancelled', false) | string | lower }}
+            {% else %}
+              false
+            {% endif %}
+          {% else %}
+            false
+          {% endif %}
+
+      # Departure 4 - Tram (erste)
+      - name: "S Karlshorst Dep4 Line"
+        unique_id: s_karlshorst_dep4_line
+        state: >
+          {% set deps = state_attr('sensor.s_karlshorst_berlin', 'departures') %}
+          {% if deps %}
+            {% set tram = deps | rejectattr('line_name', 'match', '^S') | list %}
+            {% if tram|length > 0 %}
+              {{ tram[0].line_name }}
+            {% else %}
+              unavailable
+            {% endif %}
+          {% else %}
+            unavailable
+          {% endif %}
+          
+      - name: "S Karlshorst Dep4 Direction"
+        unique_id: s_karlshorst_dep4_direction
+        state: >
+          {% set deps = state_attr('sensor.s_karlshorst_berlin', 'departures') %}
+          {% if deps %}
+            {% set tram = deps | rejectattr('line_name', 'match', '^S') | list %}
+            {% if tram|length > 0 %}
+              {{ tram[0].direction | regex_replace('^S\\+?U?\\s+', '') | truncate(20, True, '') }}
+            {% else %}
+              unavailable
+            {% endif %}
+          {% else %}
+            unavailable
+          {% endif %}
+          
+      - name: "S Karlshorst Dep4 Time"
+        unique_id: s_karlshorst_dep4_time
+        state: >
+          {% set deps = state_attr('sensor.s_karlshorst_berlin', 'departures') %}
+          {% if deps %}
+            {% set tram = deps | rejectattr('line_name', 'match', '^S') | list %}
+            {% if tram|length > 0 %}
+              {{ tram[0].time }}
+            {% else %}
+              unavailable
+            {% endif %}
+          {% else %}
+            unavailable
+          {% endif %}
+          
+      - name: "S Karlshorst Dep4 Delay"
+        unique_id: s_karlshorst_dep4_delay
+        state: >
+          {% set deps = state_attr('sensor.s_karlshorst_berlin', 'departures') %}
+          {% if deps %}
+            {% set tram = deps | rejectattr('line_name', 'match', '^S') | list %}
+            {% if tram|length > 0 %}
+              {{ tram[0].delay | int }}
+            {% else %}
+              0
+            {% endif %}
+          {% else %}
+            0
+          {% endif %}
+          
+      - name: "S Karlshorst Dep4 Color"
+        unique_id: s_karlshorst_dep4_color
+        state: >
+          {% set deps = state_attr('sensor.s_karlshorst_berlin', 'departures') %}
+          {% if deps %}
+            {% set tram = deps | rejectattr('line_name', 'match', '^S') | list %}
+            {% if tram|length > 0 %}
+              {{ tram[0].color }}
+            {% else %}
+              #FFFFFF
+            {% endif %}
+          {% else %}
+            #FFFFFF
+          {% endif %}
+      
+      - name: "S Karlshorst Dep4 Minutes"
+        unique_id: s_karlshorst_dep4_minutes
+        state: >
+          {% set deps = state_attr('sensor.s_karlshorst_berlin', 'departures') %}
+          {% if deps %}
+            {% set tram = deps | rejectattr('line_name', 'match', '^S') | list %}
+            {% if tram|length > 0 %}
+              {% set dep_time = as_timestamp(tram[0].timestamp) %}
+              {% set now_time = as_timestamp(now()) %}
+              {{ ((dep_time - now_time) / 60) | int }}
+            {% else %}
+              0
+            {% endif %}
+          {% else %}
+            0
+          {% endif %}
+        unit_of_measurement: "min"
+      
+      - name: "S Karlshorst Dep4 Cancelled"
+        unique_id: s_karlshorst_dep4_cancelled
+        state: >
+          {% set deps = state_attr('sensor.s_karlshorst_berlin', 'departures') %}
+          {% if deps %}
+            {% set tram = deps | rejectattr('line_name', 'match', '^S') | list %}
+            {% if tram|length > 0 %}
+              {{ tram[0].get('cancelled', false) | string | lower }}
+            {% else %}
+              false
+            {% endif %}
+          {% else %}
+            false
+          {% endif %}
+
+      # Departure 5 - Tram (zweite)
+      - name: "S Karlshorst Dep5 Line"
+        unique_id: s_karlshorst_dep5_line
+        state: >
+          {% set deps = state_attr('sensor.s_karlshorst_berlin', 'departures') %}
+          {% if deps %}
+            {% set tram = deps | rejectattr('line_name', 'match', '^S') | list %}
+            {% if tram|length > 1 %}
+              {{ tram[1].line_name }}
+            {% else %}
+              unavailable
+            {% endif %}
+          {% else %}
+            unavailable
+          {% endif %}
+          
+      - name: "S Karlshorst Dep5 Direction"
+        unique_id: s_karlshorst_dep5_direction
+        state: >
+          {% set deps = state_attr('sensor.s_karlshorst_berlin', 'departures') %}
+          {% if deps %}
+            {% set tram = deps | rejectattr('line_name', 'match', '^S') | list %}
+            {% if tram|length > 1 %}
+              {{ tram[1].direction | regex_replace('^S\\+?U?\\s+', '') | truncate(20, True, '') }}
+            {% else %}
+              unavailable
+            {% endif %}
+          {% else %}
+            unavailable
+          {% endif %}
+          
+      - name: "S Karlshorst Dep5 Time"
+        unique_id: s_karlshorst_dep5_time
+        state: >
+          {% set deps = state_attr('sensor.s_karlshorst_berlin', 'departures') %}
+          {% if deps %}
+            {% set tram = deps | rejectattr('line_name', 'match', '^S') | list %}
+            {% if tram|length > 1 %}
+              {{ tram[1].time }}
+            {% else %}
+              unavailable
+            {% endif %}
+          {% else %}
+            unavailable
+          {% endif %}
+          
+      - name: "S Karlshorst Dep5 Delay"
+        unique_id: s_karlshorst_dep5_delay
+        state: >
+          {% set deps = state_attr('sensor.s_karlshorst_berlin', 'departures') %}
+          {% if deps %}
+            {% set tram = deps | rejectattr('line_name', 'match', '^S') | list %}
+            {% if tram|length > 1 %}
+              {{ tram[1].delay | int }}
+            {% else %}
+              0
+            {% endif %}
+          {% else %}
+            0
+          {% endif %}
+          
+      - name: "S Karlshorst Dep5 Color"
+        unique_id: s_karlshorst_dep5_color
+        state: >
+          {% set deps = state_attr('sensor.s_karlshorst_berlin', 'departures') %}
+          {% if deps %}
+            {% set tram = deps | rejectattr('line_name', 'match', '^S') | list %}
+            {% if tram|length > 1 %}
+              {{ tram[1].color }}
+            {% else %}
+              #FFFFFF
+            {% endif %}
+          {% else %}
+            #FFFFFF
+          {% endif %}
+      
+      - name: "S Karlshorst Dep5 Minutes"
+        unique_id: s_karlshorst_dep5_minutes
+        state: >
+          {% set deps = state_attr('sensor.s_karlshorst_berlin', 'departures') %}
+          {% if deps %}
+            {% set tram = deps | rejectattr('line_name', 'match', '^S') | list %}
+            {% if tram|length > 1 %}
+              {% set dep_time = as_timestamp(tram[1].timestamp) %}
+              {% set now_time = as_timestamp(now()) %}
+              {{ ((dep_time - now_time) / 60) | int }}
+            {% else %}
+              0
+            {% endif %}
+          {% else %}
+            0
+          {% endif %}
+        unit_of_measurement: "min"
+      
+      - name: "S Karlshorst Dep5 Cancelled"
+        unique_id: s_karlshorst_dep5_cancelled
+        state: >
+          {% set deps = state_attr('sensor.s_karlshorst_berlin', 'departures') %}
+          {% if deps %}
+            {% set tram = deps | rejectattr('line_name', 'match', '^S') | list %}
+            {% if tram|length > 1 %}
+              {{ tram[1].get('cancelled', false) | string | lower }}
+            {% else %}
+              false
+            {% endif %}
+          {% else %}
+            false
+          {% endif %}

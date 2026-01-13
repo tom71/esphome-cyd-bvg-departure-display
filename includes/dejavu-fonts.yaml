@@ -1,0 +1,21 @@
+font:
+  - file: "fonts/dejvu-fonts/DejaVuSans.ttf"
+    id: font_header
+    size: 24
+    glyphs: '!"%()+=,-_.:°|0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyzäöüÄÖÜß''€/'
+  - file: "fonts/dejvu-fonts/DejaVuSans.ttf"
+    id: font_line_badge
+    size: 22
+    glyphs: '!"%()+=,-_.:°|0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyzäöüÄÖÜß''€/'
+  - file: "fonts/dejvu-fonts/DejaVuSans.ttf"
+    id: font_destination
+    size: 18
+    glyphs: '!"%()+=,-_.:°|0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyzäöüÄÖÜß''€/'
+  - file: "fonts/dejvu-fonts/DejaVuSans.ttf"
+    id: font_time
+    size: 20
+    glyphs: '!"%()+=,-_.:°|0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyzäöüÄÖÜß''€/'
+  - file: "fonts/dejvu-fonts/DejaVuSans.ttf"
+    id: font_delay
+    size: 14
+    glyphs: '!"%()+=,-_.:°|0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyzäöüÄÖÜß''€/'
