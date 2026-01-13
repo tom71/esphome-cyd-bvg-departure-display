@@ -10,17 +10,28 @@
 ####################################################################################################
 
 #
-# Basic yaml code to get the ESP32-3248S035C working in Home Assistant as a 12-button "Stream Deck"
+# BVG/VBB Departure Display for ESP32 CYD (Cheap Yellow Display)
 # ============================================================
-# Author: Aaron Stewart @makeitworktech, with the help of ChatGPT.
-# GitHub: https://github.com/makeitworktech
-# Product Info: https://www.lcdwiki.com/3.5inch_ESP32-32E_Display
+# Hardware: ESP32-3248S035C with 3.5" IPS Display (480x320)
+# 
+# Credits:
+#   - Original CYD template by Aaron Stewart @makeitworktech
+#     https://github.com/makeitworktech/ESP32-CYD-ESPHome
+#   - BVG/VBB HA Integration by @manoth-msft
+#     https://github.com/manoth-msft/home-assistant-bvg-vbb-departures
+#
+# GitHub: https://github.com/tom71/esphome-cyd-bvg-departure-display
 # ============================================================ 
 
 substitutions:
   device_name: cyd-bvg
   friendly_name: "CYD BVG"
-  comment: "BVG Abfahrtsanzeige"
+  comment: "BVG Departure Display"
+  
+  # ============ CUSTOMIZE HERE ============
+  station_name: "S Karlshorst"                      # Display name on screen
+  station_sensor: "s_karlshorst"                    # HA sensor prefix (matches unique_id in templates)
+  temperature_sensor: "garten_thermometer_temperature"  # HA temperature sensor (without 'sensor.' prefix)
 
 esphome:
   name: ${device_name}
@@ -94,7 +105,7 @@ switch:
 # Touchscreen Display related setup
 # ============================================================
 
-# Set pins to control the backlight and RGB LED. Still haven't figured this out yet. 
+# Set pins to control the backlight and RGB LED
 output:
   - platform: ledc
     pin: GPIO27
@@ -104,12 +115,12 @@ output:
     id: led_red
     inverted: true
   - platform: ledc
-    pin: GPIO16  # This was green
-    id: led_blue # ← renamed
+    pin: GPIO16  # Was green in original schematic
+    id: led_blue # Renamed (pins swapped)
     inverted: true
   - platform: ledc
-    pin: GPIO17  # This was blue
-    id: led_green # ← renamed
+    pin: GPIO17  # Was blue in original schematic
+    id: led_green # Renamed (pins swapped)
     inverted: true
 
 

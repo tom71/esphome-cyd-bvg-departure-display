@@ -1,9 +1,15 @@
-# Home Assistant Template Sensoren für BVG Abfahrten
-# Diese Konfiguration in configuration.yaml einfügen oder als Package einbinden
+# Home Assistant Template Sensors for BVG Departures
+# 
+# CONFIGURATION:
+# 1. Replace 'sensor.s_karlshorst_berlin' with your BVG sensor entity_id (all occurrences)
+# 2. Adjust the unique_id prefix 's_karlshorst' to match your station (all occurrences)
+# 3. Customize direction filters for lines 1-2 if needed (search for 'Charlottenburg|Ostbahnhof|Spandau')
+#
+# Based on BVG/VBB Integration: https://github.com/manoth-msft/home-assistant-bvg-vbb-departures
 
 template:
   - sensor:
-      # Departure 1 - S-Bahn Richtung Charlottenburg/Ostbahnhof/Spandau
+      # Departure 1 - S-Bahn towards Charlottenburg/Ostbahnhof/Spandau
       - name: "S Karlshorst Dep1 Line"
         unique_id: s_karlshorst_dep1_line
         state: >
@@ -119,7 +125,7 @@ template:
             false
           {% endif %}
 
-      # Departure 2 - S-Bahn Richtung Charlottenburg/Ostbahnhof/Spandau (zweite)
+      # Departure 2 - S-Bahn towards Charlottenburg/Ostbahnhof/Spandau (second)
       - name: "S Karlshorst Dep2 Line"
         unique_id: s_karlshorst_dep2_line
         state: >
@@ -235,7 +241,7 @@ template:
             false
           {% endif %}
 
-      # Departure 3 - S-Bahn andere Richtungen
+      # Departure 3 - S-Bahn other directions
       - name: "S Karlshorst Dep3 Line"
         unique_id: s_karlshorst_dep3_line
         state: >
@@ -351,7 +357,7 @@ template:
             false
           {% endif %}
 
-      # Departure 4 - Tram (erste)
+      # Departure 4 - Tram (first)
       - name: "S Karlshorst Dep4 Line"
         unique_id: s_karlshorst_dep4_line
         state: >
@@ -460,7 +466,7 @@ template:
             false
           {% endif %}
 
-      # Departure 5 - Tram (zweite)
+      # Departure 5 - Tram (second)
       - name: "S Karlshorst Dep5 Line"
         unique_id: s_karlshorst_dep5_line
         state: >

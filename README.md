@@ -232,9 +232,24 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## 📝 Credits
 
-- Original CYD template by [Aaron Stewart @makeitworktech](https://github.com/makeitworktech)
-- [BVG/VBB Home Assistant Integration](https://github.com/vas3k/home-assistant-bvg-vbb-departures)
-- ESPHome and LVGL communities
+This project wouldn't have been possible without:
+
+### 🙏 Special Thanks
+
+- **[manoth-msft](https://github.com/manoth-msft)** for the [BVG/VBB Home Assistant Integration](https://github.com/manoth-msft/home-assistant-bvg-vbb-departures) - The foundation that provides real-time Berlin public transport data to Home Assistant
+- **[Aaron Stewart (@makeitworktech)](https://github.com/makeitworktech)** for the [ESP32-CYD-ESPHome template](https://github.com/makeitworktech/ESP32-CYD-ESPHome) - Without this excellent CYD template, this project wouldn't exist!
+
+### 🛠️ Built With
+
+- [ESPHome](https://esphome.io/) - Home automation firmware
+- [LVGL](https://lvgl.io/) - Graphics library
+- [Home Assistant](https://www.home-assistant.io/) - Home automation platform
+
+### 👥 Community
+
+- ESPHome Discord community
+- Home Assistant forums
+- CYD hardware enthusiasts
 
 ## 📄 License
 
@@ -242,10 +257,11 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🔗 Related Projects
 
+- **[BVG/VBB HA Integration](https://github.com/manoth-msft/home-assistant-bvg-vbb-departures)** - Essential for this project
+- **[ESP32-CYD-ESPHome](https://github.com/makeitworktech/ESP32-CYD-ESPHome)** - Original CYD template
 - [ESPHome](https://esphome.io/)
 - [Home Assistant](https://www.home-assistant.io/)
-- [BVG/VBB Integration](https://github.com/vas3k/home-assistant-bvg-vbb-departures)
-- [CYD Display Hardware](https://github.com/witnessmenow/ESP32-Cheap-Yellow-Display)
+- [CYD Display Hardware Info](https://github.com/witnessmenow/ESP32-Cheap-Yellow-Display)
 
 ## 💬 Support
 
