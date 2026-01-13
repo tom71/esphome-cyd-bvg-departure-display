@@ -1,10 +1,15 @@
 # ESPHome CYD BVG Departure Display
 
-A real-time Berlin public transport (BVG/VBB) departure board for the ESP32 CYD (Cheap Yellow Display) using ESPHome and LVGL.
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![ESPHome](https://img.shields.io/badge/ESPHome-2024.x-blue.svg)](https://esphome.io/)
+[![Home Assistant](https://img.shields.io/badge/Home%20Assistant-Compatible-blue.svg)](https://www.home-assistant.io/)
+[![GitHub stars](https://img.shields.io/github/stars/YOUR_USERNAME/esphome-cyd-bvg-departure-display.svg?style=social&label=Star)](https://github.com/YOUR_USERNAME/esphome-cyd-bvg-departure-display)
 
-![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![ESPHome](https://img.shields.io/badge/ESPHome-2024.x-green.svg)
-![Home Assistant](https://img.shields.io/badge/Home%20Assistant-Compatible-blue.svg)
+<p align="center">
+  <img src="images/display-overview.jpg" alt="BVG Departure Display" width="600"/>
+</p>
+
+> 🚇 Real-time Berlin public transport (BVG/VBB) departure board for the ESP32 CYD (Cheap Yellow Display) using ESPHome and LVGL.
 
 ## ✨ Features
 
@@ -19,7 +24,12 @@ A real-time Berlin public transport (BVG/VBB) departure board for the ESP32 CYD 
 
 ## 🖼️ Screenshots
 
-[Add your screenshots here]
+<details>
+<summary>📸 Click to see more images</summary>
+
+### Normal Operation
+<img src="images/isplay-overview.jpg" alt="Normal display" width="400"/>
+</details>
 
 ## 🛠️ Hardware Required
 
